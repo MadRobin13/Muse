@@ -56,7 +56,7 @@ This project is about **freedom, accessibility, and dignity** — built with car
 
 ## 💬 Contributing
 
-Contributions are welcome! Whether it’s firmware, hardware tweaks, documentation, or design, your help can make Muse better for someone who needs it.
+Contributions are welcome! Whether it’s software bugs, hardware tweaks, documentation, or design, your help can make Muse better for someone who needs it.
 
 ```bash
 # Clone the repo
