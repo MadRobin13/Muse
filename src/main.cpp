@@ -1,7 +1,10 @@
 #include <Wire.h>
 #include <MPU6050.h>
+#include <BleMouse.h>
 
 MPU6050 mpu;
+
+BleMouse bleMouse;
 
 float accAngleX, accAngleY;
 float gyroAngleX, gyroAngleY, gyroAngleZ;
@@ -13,6 +16,8 @@ int16_t accX, accY, accZ;
 void setup() {
 
   Serial.begin(115200);
+
+  bleMouse.begin();
 
   Wire.begin();
 
@@ -43,4 +48,8 @@ void loop() {
   Serial.print(" Roll: "); Serial.print(roll);
   Serial.print(" Pitch: "); Serial.print(pitch);
   Serial.print(" Yaw: "); Serial.println(yaw);
+
+  if(bleMouse.isConnected()) {
+    bleMouse.move(gyroX * 0.0001, gyroZ * 0.0001);
+  }
 }
