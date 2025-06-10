@@ -10,6 +10,7 @@ MPU6050 mpu;
 BleMouse bleMouse("Muse");
 
 float elapsedTime, currentTime, previousTime;
+float accAngleX, roll, yaw = 0.0;
 
 int16_t accX, accY, accZ;
 int16_t gyroX, gyroY, gyroZ;
@@ -24,9 +25,9 @@ int16_t joystickFilter(int current, int previous, int coefficient) {
 void keepMouseALive() {
   if (bleMouse.isConnected()) {
     if (millis() % 1000 == 0) {
-      bleMouse.move(0.0001, 0);
+      bleMouse.move(10, 0);
     } else if (millis() % 1000 == 500) {
-      bleMouse.move(-0.0001, 0);
+      bleMouse.move(-10, 0);
     }
   }
 }
@@ -69,6 +70,10 @@ void loop() {
 
   mpu.getMotion6(&accX, &accY, &accZ, &gyroX, &gyroY, &gyroZ);
 
+  accAngleX = atan(accY / sqrt(pow(accX, 2) + pow(accZ, 2))) * 180 / PI;
+  roll = (0.96 * (roll + gyroX * elapsedTime) + 0.04 * accAngleX) * 180 / PI;
+  yaw += gyroZ * elapsedTime * 180 / PI;
+
   gyroX = joystickFilter(gyroX, prevGyroX, 6);
   gyroY = joystickFilter(gyroY, prevGyroY, 20);
   prevGyroX = gyroX;
@@ -76,7 +81,7 @@ void loop() {
 
   if (bleMouse.isConnected()) {
     float sensitivityX = 0.001;
-    float sensitivityY = 0.0005;
+    float sensitivityY = 0.0007;
     int8_t moveX = -(int8_t)(gyroX * sensitivityX);
     int8_t moveY = (int8_t)(gyroY * sensitivityY);
 
@@ -85,7 +90,7 @@ void loop() {
       // lastRealMotionTime = millis();
     }
 
-    if (abs(accY) > 6000) {
+    if (abs(roll) > 50) {
       if (!bleMouse.isPressed(MOUSE_LEFT)) {
         bleMouse.press(MOUSE_LEFT);
       }
@@ -107,4 +112,10 @@ void loop() {
 
     keepMouseALive();
   }
+
+    // digitalWrite(15, HIGH);
+    // sleep(1);
+    // digitalWrite(15, LOW);
+    // sleep(1);
+
 }
