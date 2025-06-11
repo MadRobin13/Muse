@@ -37,7 +37,7 @@ Muse is a motion-controlled mouse that can be worn on the **head, arm, or any ot
 ## 🚀 Getting Started
 
 1. Flash the firmware to the ESP32-Wrover using [PlatformIO](https://platformio.org/) or Arduino IDE.
-2. Assemble the hardware based on the included schematic in `/hardware/`.
+2. Assemble the hardware based on the included schematic in `/hardware/` (PENDING CREATION).
 3. Plug the device into a computer via USB.
 4. Strap it on, adjust the fit, and you're ready to navigate.
 
