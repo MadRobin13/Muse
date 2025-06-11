@@ -5,12 +5,20 @@
 #include <esp_bt.h>
 #include <esp_pm.h>
 #include <esp_wifi.h>
+#include <LiquidCrystal.h>
+#include <string.h>
+
 
 MPU6050 mpu;
+const int rs = 26, en = 27, d4 = 5, d5 = 4, d6 = 0, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
 BleMouse bleMouse("Muse");
 
 float elapsedTime, currentTime, previousTime;
 float accAngleX, roll, yaw = 0.0;
+
+bool isConnected = false;
 
 int16_t accX, accY, accZ;
 int16_t gyroX, gyroY, gyroZ;
@@ -30,6 +38,16 @@ void keepMouseALive() {
       bleMouse.move(-10, 0);
     }
   }
+}
+
+void updateLCD(bool isConnected, String type, LiquidCrystal &lcd) {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("BT: ");
+  lcd.print(isConnected ? "Connected" : "Disconnected");
+  lcd.setCursor(0, 1);
+  lcd.print("Type: ");
+  lcd.print(type[0,sizeof(type)], 1);
 }
 
 static unsigned long lastKeepAliveTime = 0;
@@ -61,6 +79,13 @@ void setup() {
   mpu.initialize();
 
   previousTime = millis();
+
+  lcd.begin(16, 2);
+  lcd.setCursor(0, 1);
+  // lcd.print("Muse Mouse");
+
+  pinMode(12, INPUT);
+  pinMode(14, INPUT);
 }
 
 void loop() {
@@ -80,6 +105,7 @@ void loop() {
   prevGyroY = gyroY;
 
   if (bleMouse.isConnected()) {
+    isConnected = true;
     float sensitivityX = 0.001;
     float sensitivityY = 0.0007;
     int8_t moveX = -(int8_t)(gyroX * sensitivityX);
@@ -113,9 +139,37 @@ void loop() {
     keepMouseALive();
   }
 
+  else {
+    isConnected = false;
+  }
+
     // digitalWrite(15, HIGH);
     // sleep(1);
     // digitalWrite(15, LOW);
     // sleep(1);
+  // lcd.clear();
+  // lcd.setCursor(0, 0);
+  // lcd.print("Muse Mouse");
+  lcd.setCursor(0, 0);
+  lcd.print("BT: ");
+  lcd.print(isConnected ? "Connected" : "Disconnected");
+  lcd.clear();
+
+  if (digitalRead(12) == HIGH) {
+    // updateLCD(isConnected, "Head", lcd);
+    lcd.setCursor(0, 1);
+    lcd.print("Type: ");
+    lcd.print("Head");
+  } else if (digitalRead(14) == HIGH) {
+    // updateLCD(isConnected, "Hand", lcd);
+    lcd.setCursor(0, 1);
+    lcd.print("Type: ");
+    lcd.print("Hand");
+  } else {
+    // updateLCD(isConnected, "Arm", lcd);
+    lcd.setCursor(0, 1);
+    lcd.print("Type: ");
+    lcd.print("Arm");
+  }
 
 }
