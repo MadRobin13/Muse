@@ -1,5 +1,6 @@
 #include <Wire.h>
-#include <MPU6050.h>
+// #include <MPU6050.h>
+#include <Adafruit_MPU6050.h>
 #include <BleMouse.h>
 #include <USB.h>
 #include <esp_bt.h>
@@ -9,7 +10,8 @@
 #include <string.h>
 
 
-MPU6050 mpu;
+// MPU6050 mpu;
+Adafruit_MPU6050 mpu;
 const int rs = 26, en = 27, d4 = 5, d5 = 4, d6 = 0, d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
@@ -76,7 +78,13 @@ void setup() {
 
   bleMouse.begin();
   Wire.begin();
-  mpu.initialize();
+  // mpu.initialize();
+  if (!mpu.begin()) {
+    Serial.println("Failed to find MPU6050 chip");
+    while (1) {
+      delay(10);
+    }
+  }
 
   previousTime = millis();
 
@@ -84,8 +92,8 @@ void setup() {
   lcd.setCursor(0, 1);
   // lcd.print("Muse Mouse");
 
-  pinMode(12, INPUT);
-  pinMode(14, INPUT);
+  pinMode(12, INPUT_PULLDOWN);
+  pinMode(14, INPUT_PULLDOWN);
 }
 
 void loop() {
@@ -93,21 +101,38 @@ void loop() {
   elapsedTime = (currentTime - previousTime) / 1000.0;
   previousTime = currentTime;
 
-  mpu.getMotion6(&accX, &accY, &accZ, &gyroX, &gyroY, &gyroZ);
+  // mpu.getMotion6(&accX, &accY, &accZ, &gyroX, &gyroY, &gyroZ);
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
 
-  accAngleX = atan(accY / sqrt(pow(accX, 2) + pow(accZ, 2))) * 180 / PI;
-  roll = (0.96 * (roll + gyroX * elapsedTime) + 0.04 * accAngleX) * 180 / PI;
+  // accAngleX = atan(accY / sqrt(pow(accX, 2) + pow(accZ, 2))) * 180 / PI;
+  // roll = (int)((0.96 * (roll + gyroX * elapsedTime) + 0.04 * accAngleX) * 180 / PI) % 360;
+  // yaw += (int)(gyroZ * elapsedTime * 180 / PI);
+  // yaw = (int)yaw % 360;
+
+  accX = (int16_t)a.acceleration.x * 1000;
+  accY = (int16_t)a.acceleration.y * 1000;
+  accZ = (int16_t)a.acceleration.z * 1000;
+  gyroX = (int16_t)g.gyro.x * 1000;
+  gyroY = (int16_t)g.gyro.y * 1000;
+  gyroZ = (int16_t)g.gyro.z * 1000;
+
+  roll = atan2(accY, sqrt(pow(accX, 2) + pow(accZ, 2))) * 180 / PI;
   yaw += gyroZ * elapsedTime * 180 / PI;
-
+  yaw = fmod(yaw, 360.0);
+  
   gyroX = joystickFilter(gyroX, prevGyroX, 6);
   gyroY = joystickFilter(gyroY, prevGyroY, 20);
   prevGyroX = gyroX;
   prevGyroY = gyroY;
 
+    Serial.printf("Acc: X=%d, Y=%d, Z=%d | Gyro: X=%d, Y=%d, Z=%d | Roll: %.2f | Yaw: %.2f\n",
+                  accX, accY, accZ, gyroX, gyroY, gyroZ, roll, yaw);
+
   if (bleMouse.isConnected()) {
     isConnected = true;
-    float sensitivityX = 0.001;
-    float sensitivityY = 0.0007;
+    float sensitivityX = 0.02;
+    float sensitivityY = 0.04;
     int8_t moveX = -(int8_t)(gyroX * sensitivityX);
     int8_t moveY = (int8_t)(gyroY * sensitivityY);
 
@@ -116,60 +141,49 @@ void loop() {
       // lastRealMotionTime = millis();
     }
 
-    if (abs(roll) > 50) {
-      if (!bleMouse.isPressed(MOUSE_LEFT)) {
-        bleMouse.press(MOUSE_LEFT);
-      }
-      digitalWrite(15, HIGH);
+    if (accY > 5000) {
+      bleMouse.press(MOUSE_RIGHT);
+      // digitalWrite(15, HIGH);
     } else {
-      if (bleMouse.isPressed(MOUSE_LEFT)) {
-        bleMouse.release(MOUSE_LEFT);
-      }
-      digitalWrite(15, LOW);
+        bleMouse.release(MOUSE_RIGHT);
+        // digitalWrite(15, LOW);
     }
 
-    // if (millis() - lastKeepAliveTime > keepAliveInterval && millis() - lastRealMotionTime > keepAliveInterval) {
-    // bleMouse.move(10, 0);
-    // delay(1000);
-    // bleMouse.move(-10, 0);
-    // delay(1000);
-      // lastKeepAliveTime = millis();
-    // }
+    if (accY < -3000) {
+      bleMouse.press(MOUSE_LEFT);
+      // digitalWrite(15, HIGH);
+    } else {
+        bleMouse.release(MOUSE_LEFT);
+        // digitalWrite(15, LOW);
+    }
 
     keepMouseALive();
-  }
-
-  else {
+  } else {
     isConnected = false;
+    digitalWrite(15, LOW);
   }
 
-    // digitalWrite(15, HIGH);
-    // sleep(1);
-    // digitalWrite(15, LOW);
-    // sleep(1);
-  // lcd.clear();
-  // lcd.setCursor(0, 0);
-  // lcd.print("Muse Mouse");
   lcd.setCursor(0, 0);
   lcd.print("BT: ");
   lcd.print(isConnected ? "Connected" : "Disconnected");
-  lcd.clear();
+  lcd.setCursor(0, 1);
+  lcd.print("Type: ");
 
-  if (digitalRead(12) == HIGH) {
+  if (digitalRead(12) == HIGH && digitalRead(14) == LOW) {
     // updateLCD(isConnected, "Head", lcd);
-    lcd.setCursor(0, 1);
-    lcd.print("Type: ");
     lcd.print("Head");
-  } else if (digitalRead(14) == HIGH) {
+  } else if (digitalRead(14) == HIGH && digitalRead(12) == LOW) {
     // updateLCD(isConnected, "Hand", lcd);
-    lcd.setCursor(0, 1);
-    lcd.print("Type: ");
     lcd.print("Hand");
-  } else {
+  } else if (digitalRead(12) == LOW && digitalRead(14) == LOW) {
     // updateLCD(isConnected, "Arm", lcd);
-    lcd.setCursor(0, 1);
-    lcd.print("Type: ");
     lcd.print("Arm");
+
+  } else {
+    lcd.setCursor(0, 1);
+    lcd.print("Error");
   }
+
+  lcd.clear();
 
 }
