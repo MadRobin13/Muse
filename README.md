@@ -1,7 +1,5 @@
 # 🐭 Muse – A Wearable Motion-Controlled Mouse for Disabled Creators (WIP)
-<div background-color="#0c1928" width="1000px" height="1000px">
-    <img src="./logos/Muse_white_with_blackBG_logo.png"></img>
-</div>
+<img src="https://github.com/MadRobin13/Assets/blob/cf013104932ca5b4a5696f4017aa68dd73726bf3/Muse/Muse_white_with_blackBG_wide_logo.png" width="10000px" margin="0 auto"/>
 ___
 **Muse** is an open-source, wearable mouse created **for disabled creators**. It empowers users to access the internet and express their creativity, no matter their mobility challenges. Muse is designed to be affordable, customizable, and adaptable — because assistive technology should serve people, not exploit them.
 
