@@ -156,41 +156,41 @@ void loop()
 		}
 		else if (usingHand)
 		{
-			gyroX = joystickFilter(gyroX, prevGyroX, 5);
-			gyroY = joystickFilter(gyroY, prevGyroY, 5);
+			gyroX = joystickFilter(gyroX, prevGyroX, 6);
+			gyroY = joystickFilter(gyroY, prevGyroY, 2);
 			prevGyroX = gyroX;
 			prevGyroY = gyroY;
 
-			float sensitivityX = 0.005;
-			float sensitivityY = 0.005;
-			int8_t moveX = (int8_t)(gyroZ * sensitivityX);
-			int8_t moveY = (int8_t)(gyroY * sensitivityY);
+			float sensitivityX = 0.01;
+			float sensitivityY = 0.01;
+			int8_t moveX = -(int8_t)(gyroX * sensitivityX);
+			int8_t moveY = -(int8_t)(gyroY * sensitivityY);
 
 			if (abs(moveX) > 1 || abs(moveY) > 1)
 			{
 				bleMouse.move(moveX, moveY);
 			}
 
-			if (gyroX < -55 && !rightButtonPressed)
+			if (accY > 5000 && !rightButtonPressed)
 			{
 				rightButtonPressed = true;
 				bleMouse.press(MOUSE_RIGHT);
 				analogWrite(15, 60);
 			}
-			else if (gyroX > -55 && rightButtonPressed)
+			else if (accY < 5000 && rightButtonPressed)
 			{
 				rightButtonPressed = false;
 				bleMouse.release(MOUSE_RIGHT);
 				analogWrite(15, 0);
 			}
 
-			if (gyroX > 55 && !leftButtonPressed)
+			if (accY < -5000 && !leftButtonPressed)
 			{
 				leftButtonPressed = true;
 				bleMouse.press(MOUSE_LEFT);
 				analogWrite(15, 60);
 			}
-			else if (gyroX < 55 && leftButtonPressed)
+			else if (accY > -5000 && leftButtonPressed)
 			{
 				leftButtonPressed = false;
 				bleMouse.release(MOUSE_LEFT);
@@ -200,12 +200,12 @@ void loop()
 		else if (usingArm)
 		{
 			gyroZ = joystickFilter(gyroZ, prevGyroZ, 20);
-			gyroY = joystickFilter(gyroY, prevGyroY, 10);
+			gyroY = joystickFilter(gyroY, prevGyroY, 5);
 			prevGyroZ = gyroZ;
 			prevGyroY = gyroY;
 
 			float sensitivityX = 0.005;
-			float sensitivityY = 0.005;
+			float sensitivityY = 0.022;
 			int8_t moveX = -(int8_t)(gyroZ * sensitivityX);  // Use third axis for X
 			int8_t moveY = -(int8_t)(gyroY * sensitivityY);
 
