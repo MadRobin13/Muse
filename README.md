@@ -5,7 +5,7 @@
 
 ## ✨ What is Muse?
 
-**Muse** is an open-source, wearable mouse created **for disabled creators**. It empowers users to access the internet and express their creativity, no matter their mobility challenges. Muse is designed to be affordable, customizable, and adaptable — because assistive technology should serve people, and not at their discomfort.
+**Muse** is an open-source, wearable mouse created **for disabled creators**. It empowers users to access the internet and express their creativity, no matter their mobility challenges. Muse is designed to be affordable, customizable, and adaptable — because assistive technology should serve people, but not at the expense of their comfort.
 
 Specifically, it is a motion-controlled mouse that can be worn on the **head, arm, or hand** — tailored to suit each individual’s abilities. Using a gyroscope and accelerometer, it translates body motion into mouse movement, enabling hands-free navigation, communication, and creation.
 
